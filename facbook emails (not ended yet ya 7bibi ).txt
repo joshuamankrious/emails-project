@@ -1,0 +1,105 @@
+from selenium import webdriver
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
+from twocaptcha import TwoCaptcha
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium import webdriver
+
+# Path to Tor Browser's Firefox binary (on your system)
+tor_binary_path = r'C:/Users/Jhin/OneDrive/Desktop/Tor Browser/Browser/firefox.exe'
+
+# Path to Geckodriver (Windows version)
+geckodriver_path = 'D:/gecko/geckodriver.exe'
+
+# Set up Firefox options for Tor
+options = Options()
+options.binary_location = tor_binary_path
+
+# Set Firefox to use Tor's SOCKS proxy (default port 9150)
+options.set_preference('network.proxy.type', 1)
+options.set_preference('network.proxy.socks', '127.0.0.1')
+options.set_preference('network.proxy.socks_port', 9150)
+options.set_preference('network.proxy.socks_remote_dns', True)
+
+# Optional: Run in headless mode (without GUI)
+options.headless = False
+
+# Set up the Firefox driver with the specified options
+service = Service(executable_path=geckodriver_path)
+driver = webdriver.Firefox(service=service, options=options)
+
+# Open a webpage (e.g., checking your Tor IP)
+driver.get("https://check.torproject.org/")
+print("Page title is: ", driver.title)
+
+##################################################################################
+#connecting to Tor
+# sleep(2)
+# Connect=driver.find_element(by.xpath,'//*[@id="connectButton"]').click()
+
+##################################################################################
+#extracting email 
+
+driver.get("https://temp-mail.org/")
+
+
+
+
+###################################################################################
+# connecting to fackbook
+driver.get("https://web.facebook.com/?_rdc=1&_rdr")
+createAccbutton=find_element(By.Xpath,'//*[@id="u_0_0_m8"]').click()
+firstname=find_element(By.Xpath,'//*[@id="u_0_8_an"]').send_keys(firstname1)
+surname=find_element(By.Xpath,'//*[@id="u_0_a_JX"]').send_keys(surname1)
+day=find_element(By.Xpath,'//*[@id="day"]').send_keys('11')
+month=find_element(By.Xpath,'//*[@id="month"]').send_keys('january')
+male=find_element(By.Xpath,'//*[@id="u_0_d_AA"]/span[2]/label').send_keys('male')
+email=find_element(By.Xpath,'//*[@id="u_0_h_ED"]')
+password=find_element(By.Xpath,'//*[@id="u_0_h_ED"]').send_keys(password1)
+year=find_element(By.Xpath,'//*[@id="year"]').send_keys('1998')
+
+moreinfo=find_element(By.Xpath,'//*[@id="scrollview"]/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div/div/div[1]/div/span/span').click()
+
+
+
+###############################################################################
+#capatcha solve for Facebook
+# Load the target page
+captcha_page_url = driver.current_url
+
+
+# Solve the Captcha
+print("Solving Captcha")
+solver = TwoCaptcha("cc13de98ba251725e407d2dbea8185a2")
+response = solver.recaptcha(sitekey='6LdktRgnAAAAAFQ6icovYI2-masYLFjEFyzQzpix', url=captcha_page_url)
+code = response['code']
+print(f"Successfully solved the Captcha. The solve code is {code}")
+
+# Set the solved Captcha
+recaptcha_response_element = driver.find_element(By.ID, 'g-recaptcha-response')
+driver.execute_script(f'arguments[0].value = "{code}";', recaptcha_response_element)
+
+# Submit the form
+submit_btn = driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+submit_btn.click()
+
+# Pause the execution so you can see the screen after submission before closing the driver
+input("Press enter to continue")
+driver.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Close the browser
+driver.quit()
