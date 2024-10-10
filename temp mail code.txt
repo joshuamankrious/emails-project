@@ -1,0 +1,64 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+import pyperclip
+from time import sleep
+import os
+
+
+
+# Set up Chrome options
+chrome_options = Options()
+chrome_options.add_argument("--incognito")
+Target_emails_count=int(input('number of emails:'))
+# Path to your ChromeDriver
+driver_path = r"D:\chromedriver-win64\chromedriver-win64\chromedriver.exe"
+
+# Create a Service object with the driver path
+service = Service(driver_path)
+
+# Initialize WebDriver with options
+driver = webdriver.Chrome(service=service, options=chrome_options)
+
+EMAIL_FILE='previous_email.txt'
+
+# Open a website in Incognito mode
+def get_email():
+    driver.get("https://temp-mail.org/")
+    sleep(10)
+    webemail=driver.find_element(By.XPATH,'//*[@id="mail"]')
+    webemail.send_keys(Keys.CONTROL+'a')
+    webemail.send_keys(Keys.CONTROL+'c')
+    email=pyperclip.paste()
+    print('the email is:',email)
+    sleep(5)
+    return email
+def load_existing_emails():
+    if os.path.exists(EMAIL_FILE):
+        with open(EMAIL_FILE,'r') as file:
+            return {line.strip() for line in file}
+    return set()    
+    
+def save_email(email):
+    with open(EMAIL_FILE,'a') as file:
+        file.write(email+'\n')
+        
+existing_emails=load_existing_emails()
+
+
+
+# new_email=get_email()
+collected_emails=0
+while collected_emails < Target_emails_count :
+    new_email=get_email()
+    if new_email not in existing_emails:
+        save_email(new_email)
+        existing_emails.add(new_email)
+        collected_emails+=1
+        print('new email is saved :',new_email)
+        driver.close()
+    else:
+        print('email is already excisted retrying')               
+        
