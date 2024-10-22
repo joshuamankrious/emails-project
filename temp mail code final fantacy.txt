@@ -1,0 +1,104 @@
+import os
+from time import sleep
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+
+# Set up Chrome options
+chrome_options = Options()
+chrome_options.add_argument("--incognito")
+chrome_options.add_argument("--headless")  # Adding headless mode
+chrome_options.add_argument("--disable-gpu")  # Disable GPU for headless mode
+chrome_options.add_argument("--window-size=1920,1080")  # Set window size for headless mode
+
+# Taking the number of emails
+Target_emails_count = int(input('Number of emails:'))
+
+# Path to your ChromeDriver
+driver_path = r"D:\chromedriver-win64\chromedriver-win64\chromedriver.exe"
+
+# Create a Service object with the driver path
+service = Service(driver_path)
+
+# Initialize WebDriver with options
+driver = webdriver.Chrome(service=service, options=chrome_options)
+
+# Prompt user for the directory containing the email file
+folder_path = input('Enter the directory path where you want the email file is located: ')
+EMAIL_FILE = os.path.join(folder_path, 'mailTM.txt')
+
+# Starting the website
+driver.get("https://mail.tm/en/")
+sleep(2)
+
+
+# Open a website in Incognito mode
+def get_email():
+    sleep(5)
+    start = driver.find_element(By.XPATH,'//*[local-name()="svg"][@stroke="currentColor"]/*[name()="path" and @d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"]').click()
+    sleep(5)
+
+    # Clicking the list to get email
+    pre_email = driver.find_element(By.XPATH, '//*[@id="headlessui-menu-button-v-1-1"]/div/button/span/span')
+    pre_email.click()
+    sleep(3)
+
+    # Getting email
+    email_div = driver.find_element(By.XPATH, f'//*[@id="headlessui-menu-item-v-1-{j}"]/div/p[2]')
+    email = email_div.text
+
+
+    # Getting password
+    password_div = driver.find_element(By.XPATH, f'//*[@id="headlessui-menu-item-v-1-{j}"]/div/p[3]/span')
+    password = password_div.text
+
+
+    return email, password
+
+
+def load_existing_emails():
+    if os.path.exists(EMAIL_FILE):
+        with open(EMAIL_FILE, 'r') as file:
+            return {line.strip() for line in file}
+    return set()
+
+
+def save_email(email, password, num_of_emails):
+    with open(EMAIL_FILE, 'a') as file:
+        file.write(f'{num_of_emails}' + '-' + email + ':' + password + '\n')
+
+
+existing_emails = load_existing_emails()
+
+collected_emails = 0
+i = 1  # Counter for number of emails
+j = 3  # Xpath index
+while collected_emails < Target_emails_count:
+    new_email, password = get_email()
+    while  new_email == '...' or password== '...':
+            try:
+                driver.get("https://mail.tm/en/")
+                print('restarting...')
+                sleep(5)
+                j=3
+                new_email,password=get_email()
+            except TimeoutException as e:
+                print('timeout occurred i will go to reload the page')
+                driver.get('https:/mail.tm/en/')
+
+
+    if new_email not in existing_emails:
+        save_email(new_email, password, i)
+        existing_emails.add(new_email)
+        collected_emails += 1
+        print(f'{collected_emails}+New email is saved:', new_email, 'and the password is:', password)
+        j += 5
+        i += 1
+        sleep(1)
+    else:
+        print('Email already exists, retrying')
+
+sleep(2)
