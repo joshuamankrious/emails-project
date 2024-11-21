@@ -1,0 +1,19 @@
+from appium import webdriver
+
+desired_caps = {
+    'platformName': 'Android',
+    'platformVersion': '11',  # Replace with your Android version
+    'deviceName': 'R9WN727AB4J',  # Replace with your device ID from `adb devices`
+    'automationName': 'UiAutomator2',
+    'appPackage': 'com.whatsapp',  # Or 'com.facebook.orca' for Messenger
+    'appActivity': 'com.whatsapp.HomeActivity',  # Or the correct activity name for the app
+    'adbExecTimeout': 30000  # Increase timeout to 30 seconds 
+}
+
+appium_server_url = 'http://127.0.0.1:4723/wd/hub'
+
+driver = webdriver.Remote(appium_server_url, desired_caps)
+
+# ... your test actions (e.g., find elements, click buttons) ...
+
+driver.quit()
